@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musely — Intelligent Recommendation Engine</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500;600&display=swap');
+        
+        @font-face {
+            font-family: 'Google Sans';
+            font-style: normal;
+            font-weight: 400;
+            src: local('Google Sans Regular'), local('GoogleSans-Regular'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaGrENHsxJlGDuGo1OIlL3Owp5eKQtG.woff2) format('woff2');
+        }
+        @font-face {
+            font-family: 'Google Sans';
+            font-style: normal;
+            font-weight: 700;
+            src: local('Google Sans Bold'), local('GoogleSans-Bold'), url(https://fonts.gstatic.com/s/googlesans/v14/4UaErENHsxJlGDuGo1OIlL3OW6ROWwMxwEg.woff2) format('woff2');
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #fcfbfa;
+            color: #2b2a28;
+            font-family: 'Jost', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .rec-topbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2.5rem 4rem;
+            border-bottom: 1px solid #eae6e1;
+            width: 100%;
+        }
+        
+        .rec-logo {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 1.65rem;
+            font-weight: 700;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #6c5237 0%, #bfa37a 25%, #967954 50%, #bfa37a 75%, #6c5237 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            text-shadow: 0px 1px 1px rgba(255,255,255,0.4);
+            text-align: center;
+        }
+
+        .rec-hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding-top: 5rem; 
+            min-height: 520px;
+        }
+        .rec-hero-left {
+            padding: 2rem 5rem 4rem 5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        .rec-hero-sub {
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: #a19a91;
+            margin-bottom: 1.5rem;
+        }
+        .rec-hero-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2.8rem, 5vw, 5rem);
+            font-weight: 300;
+            line-height: 1.0;
+            margin-bottom: 2rem;
+            letter-spacing: -0.02em;
+            color: #1a1918;
+        }
+        .rec-hero-title em { font-style: italic; color: #8a6d4d; }
+        .rec-hero-desc {
+            font-size: 0.82rem;
+            font-weight: 300;
+            letter-spacing: 0.03em;
+            color: #706a61;
+            line-height: 1.8;
+            max-width: 380px;
+        }
+
+        .rec-hero-right {
+            padding: 2rem 5rem 4rem 3.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 2rem;
+        }
+        
+        .rec-hero-right-label {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #8a6d4d;
+        }
+
+        .rec-domain-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+        .rec-dc {
+            background: #f5f2ee;
+            border: 1px solid #e3ded8;
+            padding: 1.4rem 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .rec-dc:hover { background: #eeeae4; border-color: #c4b6a5; }
+        .rec-dc.active { background: #faf6f0; border-color: #8a6d4d; box-shadow: inset 0 0 0 1px #8a6d4d; }
+        
+        .rec-dc-icon { 
+            font-size: 0.95rem; 
+            color: #9c9489; 
+            margin-bottom: 0.6rem; 
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        .rec-dc.active .rec-dc-icon { color: #8a6d4d; }
+        
+        .rec-dc-lbl {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: #7c756b;
+        }
+        .rec-dc.active .rec-dc-lbl { color: #8a6d4d; font-weight: 700; }
+
+        .rec-prompts { display: flex; flex-direction: column; gap: 8px; }
+        .rec-prompt-item {
+            padding: 1rem 1.4rem;
+            background: #fbf9f6;
+            border: 1px solid #e6e1da;
+            font-family: 'Google Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 400;
+            color: #5c564d;
+            letter-spacing: 0.01em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .rec-prompt-item:hover { border-color: #8a6d4d; color: #8a6d4d; background: #faf8f4; }
+
+        .rec-scroll-cue {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-top: 4rem;
+            margin-bottom: 2rem;
+        }
+        .rec-scroll-btn {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            color: #a19a91;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: color 0.2s, transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .rec-scroll-btn:hover {
+            color: #8a6d4d;
+            transform: translateY(2px);
+        }
+
+        .rec-chat-area { 
+            padding: 4rem 5rem 5rem 5rem; 
+        }
+        .rec-chat-box { background: #fdfdfd; border: 1px solid #e4dfd7; box-shadow: 0 10px 30px rgba(138,109,77,0.04); }
+        .rec-chat-head {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #eadecc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #faf8f5;
+        }
+        .rec-chat-title {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #8a6d4d;
+        }
+        .rec-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.6rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #8a6d4d;
+        }
+        .rec-status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #8a6d4d;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+
+        .rec-messages {
+            padding: 2.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+            min-height: 280px;
+            max-height: 650px;
+            overflow-y: auto;
+            background: #fdfcfb;
+        }
+        .rec-msg { display: flex; gap: 1rem; align-items: flex-start; width: 100%; }
+        .rec-msg.user { flex-direction: row-reverse; }
+        
+        .rec-av {
+            width: 30px; height: 30px;
+            background: #f2eee9;
+            border: 1px solid #dfd9ce;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.55rem; font-weight: 600; letter-spacing: 0.1em;
+            color: #8a7c6c; flex-shrink: 0;
+        }
+        .rec-msg.user .rec-av { background: #f5ece2; border-color: #e3cca8; color: #8a6d4d; }
+        
+        .rec-bubble {
+            max-width: 80%;
+            padding: 1rem 1.4rem;
+            background: #f7f5f2;
+            border: 1px solid #eadecc;
+            font-size: 0.85rem;
+            font-weight: 300;
+            line-height: 1.7;
+            color: #423f3b;
+            letter-spacing: 0.01em;
+        }
+        .rec-msg.user .rec-bubble { background: #faf6f0; border-color: #ebdcb9; color: #5c5043; }
+
+        .rec-cards-wrap { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 16px; }
+        .rec-card-header {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #8a6d4d;
+            margin-bottom: 6px;
+        }
+        .rec-card {
+            background: #fdfdfd;
+            border: 1px solid #eae5dd;
+            border-left: 3px solid #c9b093;
+            padding: 1rem 1.4rem;
+            transition: all 0.2s ease;
+        }
+        .rec-card:hover { border-left-color: #8a6d4d; background: #faf9f6; }
+        .rec-card-top { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.3rem; }
+        .rec-card-num { font-family: 'Cormorant Garamond', serif; font-size: 0.85rem; color: #8a6d4d; font-weight: 500; }
+        .rec-card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; color: #21201f; font-weight: 400; }
+        .rec-card-desc { font-size: 0.8rem; color: #615c54; padding-left: 1.6rem; line-height: 1.6; font-weight: 300; }
+
+        .rec-input-row {
+            padding: 1.4rem 2rem;
+            border-top: 1px solid #eadecc;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            background: #faf8f5;
+        }
+        .rec-chat-input {
+            flex-grow: 1;
+            background: #fdfdfd;
+            border: 1px solid #dcd7ce;
+            color: #21201f;
+            padding: 0.8rem 1.2rem;
+            font-family: 'Jost', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .rec-chat-input:focus { border-color: #8a6d4d; }
+        
+        .rec-btn {
+            background: #fcfaf7;
+            border: 1px solid #8a6d4d;
+            color: #8a6d4d;
+            font-family: 'Jost', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: 0.8rem 1.8rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .rec-btn:hover { background: #8a6d4d; color: #fcfbfa; }
+        .rec-btn.secondary { border-color: #d2cac0; color: #7c7368; }
+        .rec-btn.secondary:hover { background: #7c7368; color: #fcfbfa; border-color: #7c7368; }
+
+        .rec-footer {
+            padding: 3rem 5rem;
+            border-top: 1px solid #eae6e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f5f3f0;
+        }
+        .rec-foot-text {
+            font-size: 0.6rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            color: #948c80;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="rec-topbar">
+        <div class="rec-logo">Musely : AI recommendation system</div>
+    </div>
+
+    <div class="rec-hero">
+        <div class="rec-hero-left">
+            
+            <div class="rec-hero-title">Discover<br><em>what you</em><br>didn't know<br>you needed</div>
+            
+        </div>
+        <div class="rec-hero-right">
+            <div class="rec-hero-right-label">Select Domain </div>
+            <div class="rec-domain-grid">
+                <div class="rec-dc active" onclick="setDomain('Film')">
+                    <div class="rec-dc-icon">🎞️✮⋆˙</div><div class="rec-dc-lbl">Film</div>
+                </div>
+                <div class="rec-dc" onclick="setDomain('Music')">
+                    <div class="rec-dc-icon">˖ ݁♬⋆.˚𝄞</div><div class="rec-dc-lbl">Music</div>
+                </div>
+                <div class="rec-dc" onclick="setDomain('Books')">
+                    <div class="rec-dc-icon">📓✧˖°.</div><div class="rec-dc-lbl">Books</div>
+                </div>
+                <div class="rec-dc" onclick="setDomain('Games')">
+                    <div class="rec-dc-icon">.𖥔 ݁ ˖ 🎮</div><div class="rec-dc-lbl">Games</div>
+                </div>
+                <div class="rec-dc" onclick="setDomain('Products')">
+                    <div class="rec-dc-icon">.✦ ݁˖🛒</div><div class="rec-dc-lbl">Products</div>
+                </div>
+            </div>
+
+            <div id="dynamicVibeLabel" class="rec-hero-right-label">Film Vibes</div>
+            <div id="promptsContainer" class="rec-prompts"></div>
+        </div>
+    </div>
+
+    <div class="rec-scroll-cue">
+        <button class="rec-scroll-btn" onclick="document.getElementById('consoleWorkspace').scrollIntoView();">
+            Scroll to Console
+            <span>▼</span>
+        </button>
+    </div>
+
+    <div class="rec-chat-area" id="consoleWorkspace">
+        <div class="rec-chat-box">
+            <div class="rec-chat-head">
+                <span id="workspaceTitle" class="rec-chat-title">FILM RECOMMENDATION WORKSPACE</span>
+                <span class="rec-status"><span class="rec-status-dot"></span>Active</span>
+            </div>
+            <div id="chatMessages" class="rec-messages">
+                <div class="rec-msg">
+                    <div class="rec-av">AI</div>
+                    <div class="rec-bubble">Welcome. Tell me what you're drawn to — a mood, a reference, a feeling. I'll surface exactly what fits.</div>
+                </div>
+            </div>
+            <div class="rec-input-row">
+                <input type="text" id="userInput" class="rec-chat-input" placeholder="Describe what you're looking for..." onkeydown="if(event.key === 'Enter') sendMessage()">
+                <button class="rec-btn" onclick="sendMessage()">Send ◈</button>
+                <button class="rec-btn secondary" onclick="clearConsole()">Clear Console</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="rec-footer">
+        
+        <span class="rec-foot-text" style="color:#b5ad9e;"> MAITRI SINGH </span>
+    </div>
+
+    <script>
+        const DOMAIN_DATA = {
+            Film: [
+                "Cinematic masterpieces with a melancholic, brooding tone",
+                "Mind-bending psychological thrillers that keep you guessing",
+                "Something like the movie kuch kuch hota hai"
+            ],
+            Music: [
+                "Ethereal, atmospheric soundscapes for late-night listening",
+                "Intricate acoustic and indie folk with raw emotional depth",
+                "Lo-fi, dusty jazz beats perfect for focused studying"
+            ],
+            Books: [
+                "Immersive dystopian novels exploring complex social structures",
+                "Deeply atmospheric historical fiction with lyrical prose",
+                "Mind-expanding philosophy or speculative sci-fi"
+            ],
+            Games: [
+                "Rich story-driven games with incredible, deep world-building",
+                "Meditative, beautiful indie experiences to help unwind",
+                "Tense, tactical strategic games requiring high foresight"
+            ],
+            Products: [
+                "Timeless, minimal desk setup essentials and hardware",
+                "High-fidelity audiophile gear built for exceptional sound",
+                "Premium, durable physical objects designed to last a lifetime"
+            ]
+        };
+
+        let currentDomain = "Film";
+        let messageHistory = [];
+
+        function setDomain(domain) {
+            currentDomain = domain;
+            messageHistory = [];
+            document.getElementById("workspaceTitle").innerText = `${domain.toUpperCase()} RECOMMENDATION WORKSPACE`;
+            document.getElementById("dynamicVibeLabel").innerText = `${domain.toUpperCase()} VIBES`;
+            
+            document.querySelectorAll(".rec-dc").forEach(el => {
+                el.classList.remove("active");
+                if(el.querySelector(".rec-dc-lbl").innerText.trim().toLowerCase() === domain.toLowerCase()) {
+                    el.classList.add("active");
+                }
+            });
+
+            const container = document.getElementById("promptsContainer");
+            container.innerHTML = "";
+            DOMAIN_DATA[domain].forEach(p => {
+                const div = document.createElement("div");
+                div.className = "rec-prompt-item";
+                div.innerText = p;
+                div.onclick = () => { document.getElementById("userInput").value = p; sendMessage(); };
+                container.appendChild(div);
+            });
+            clearConsole();
+        }
+
+        function appendUserMessage(text) {
+            const container = document.getElementById("chatMessages");
+            container.innerHTML += `
+                <div class="rec-msg user">
+                    <div class="rec-av">YOU</div>
+                    <div class="rec-bubble">${text}</div>
+                </div>`;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendAIMessage(data, rawError) {
+            const container = document.getElementById("chatMessages");
+            if (rawError) {
+                container.innerHTML += `
+                    <div class="rec-msg">
+                        <div class="rec-av">AI</div>
+                        <div class="rec-bubble" style="color: #8a6d4d;">${rawError}</div>
+                    </div>`;
+            } else if (data) {
+                let cardsHtml = '<div class="rec-card-header">Recommendations </div>';
+                data.recommendations.forEach((r, i) => {
+                    const num = String(i + 1).padStart(2, '0');
+                    cardsHtml += `
+                        <div class="rec-card">
+                            <div class="rec-card-top">
+                                <span class="rec-card-num">${num}</span>
+                                <span class="rec-card-title">${r.title}</span>
+                            </div>
+                            <div class="rec-card-desc">${r.description}</div>
+                        </div>`;
+                });
+
+                container.innerHTML += `
+                    <div class="rec-msg">
+                        <div class="rec-av">AI</div>
+                        <div class="rec-bubble">
+                            <div>${data.intro}</div>
+                            <div class="rec-cards-wrap">${cardsHtml}</div>
+                        </div>
+                    </div>`;
+            }
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const inputEl = document.getElementById("userInput");
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            inputEl.value = "";
+            appendUserMessage(text);
+            messageHistory.push({ role: "user", content: text });
+
+            const container = document.getElementById("chatMessages");
+            const loadingId = "msg-loading-" + Date.now();
+            container.innerHTML += `
+                <div class="rec-msg" id="${loadingId}">
+                    <div class="rec-av">AI</div>
+                    <div class="rec-bubble" style="color: #8a6d4d; font-style: italic;">Parsing preference landscape...</div>
+                </div>`;
+            container.scrollTop = container.scrollHeight;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/api/recommend", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ domain: currentDomain, messages: messageHistory })
+                });
+                
+                document.getElementById(loadingId)?.remove();
+                const resData = await response.json();
+                
+                if (response.ok) {
+                    appendAIMessage(resData.data, resData.error);
+                    if(resData.data) messageHistory.push({ role: "assistant", content: JSON.stringify(resData.data) });
+                } else {
+                    appendAIMessage(null, resData.detail || "Connection Error");
+                }
+            } catch (err) {
+                document.getElementById(loadingId)?.remove();
+                appendAIMessage(null, "◈ Failed to connect to backend engine. Verify that your app.py terminal session is running on port 8000.");
+            }
+        }
+
+        function clearConsole() {
+            messageHistory = [];
+            document.getElementById("chatMessages").innerHTML = `
+                <div class="rec-msg">
+                    <div class="rec-av">AI</div>
+                    <div class="rec-bubble">Workspace reset. Ask for recommendations tailored to your mood.</div>
+                </div>`;
+        }
+
+        window.onload = function() {
+            setDomain("Film");
+        };
+    </script>
+</body>
+</html>
